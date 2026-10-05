@@ -566,46 +566,77 @@ export default function Home() {
           position: relative;
         }
 
+        /* =========================
+           PROFİL FOTOĞRAFI
+           ========================= */
+
         .portrait-frame {
           position: absolute;
 
-          width: 255px;
-          height: 320px;
+          width: 280px;
+          height: 280px;
 
-          right: 50%;
+          left: 50%;
+          top: 50%;
 
-          transform: translateX(50%) rotateY(-8deg) rotateX(4deg);
+          transform: translate(-50%, -50%);
 
-          border-radius: 50% / 46%;
+          border-radius: 50%;
 
-          padding: 2px;
+          padding: 3px;
 
-          background: linear-gradient(
-            135deg,
-            rgba(103, 232, 249, 0.9),
-            rgba(129, 140, 248, 0.25),
-            rgba(244, 114, 182, 0.8)
+          background: conic-gradient(
+            from 0deg,
+            #22d3ee,
+            #60a5fa,
+            #a78bfa,
+            #f472b6,
+            #22d3ee
           );
 
           box-shadow:
-            0 35px 100px rgba(0, 0, 0, 0.65),
-            0 0 70px rgba(34, 211, 238, 0.12);
+            0 0 25px rgba(34, 211, 238, 0.45),
+            0 0 60px rgba(34, 211, 238, 0.25),
+            0 0 110px rgba(167, 139, 250, 0.18),
+            0 30px 90px rgba(0, 0, 0, 0.65);
 
-          animation: float 6s ease-in-out infinite;
+          animation:
+            portraitGlow 4s ease-in-out infinite,
+            portraitFloat 6s ease-in-out infinite;
 
-          z-index: 4;
+          z-index: 10;
         }
 
         .portrait-inner {
+          width: 100%;
           height: 100%;
 
-          border-radius: 50% / 46%;
+          border-radius: 50%;
 
           overflow: hidden;
 
           background: #070b14;
 
           position: relative;
+
+          border: 2px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .portrait-inner img {
+          width: 100%;
+          height: 100%;
+
+          display: block;
+
+          object-fit: cover;
+
+          object-position: center;
+
+          border-radius: 50%;
+
+          filter: saturate(1.08) contrast(1.04);
+
+          transition: transform 0.5s ease;
         }
 
         .portrait-inner::after {
@@ -615,38 +646,50 @@ export default function Home() {
 
           inset: 0;
 
-          background: linear-gradient(
-            to bottom,
-            transparent 55%,
-            rgba(3, 5, 11, 0.75)
-          );
-        }
+          border-radius: 50%;
 
-        .portrait-inner img {
-          width: 100%;
-          height: 100%;
+          pointer-events: none;
 
-          object-fit: cover;
+          background:
+            radial-gradient(
+              circle at 30% 20%,
+              rgba(255, 255, 255, 0.18),
+              transparent 28%
+            ),
+            linear-gradient(
+              135deg,
+              rgba(34, 211, 238, 0.08),
+              transparent 45%,
+              rgba(167, 139, 250, 0.12)
+            );
 
-          object-position: center;
+          mix-blend-mode: screen;
         }
 
         .portrait-label {
           position: absolute;
 
-          bottom: 17px;
+          bottom: 18px;
 
-          left: 17px;
-          right: 17px;
+          left: 22px;
+          right: 22px;
 
           z-index: 5;
 
           font:
-            700 10px/1.5 ui-monospace,
+            700 9px/1.5 ui-monospace,
             monospace;
 
           color: #a5f3fc;
+
+          text-align: center;
+
+          text-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
         }
+
+        /* =========================
+           ORBITAL SYSTEM
+           ========================= */
 
         .orbital-system {
           width: 530px;
@@ -1665,24 +1708,44 @@ export default function Home() {
           margin-top: 10px;
         }
 
+        /* =========================
+           ANIMATIONS
+           ========================= */
+
         @keyframes pulse {
           50% {
             opacity: 0.45;
-
             transform: scale(0.75);
           }
         }
 
-        @keyframes float {
+        @keyframes portraitFloat {
           0%,
           100% {
-            transform: translateX(50%) rotateY(-8deg) rotateX(4deg)
-              translateY(0);
+            transform: translate(-50%, -50%) translateY(0);
           }
 
           50% {
-            transform: translateX(50%) rotateY(-3deg) rotateX(7deg)
-              translateY(-15px);
+            transform: translate(-50%, -50%) translateY(-12px);
+          }
+        }
+
+        @keyframes portraitGlow {
+          0%,
+          100% {
+            box-shadow:
+              0 0 25px rgba(34, 211, 238, 0.4),
+              0 0 60px rgba(34, 211, 238, 0.22),
+              0 0 110px rgba(167, 139, 250, 0.15),
+              0 30px 90px rgba(0, 0, 0, 0.65);
+          }
+
+          50% {
+            box-shadow:
+              0 0 35px rgba(34, 211, 238, 0.65),
+              0 0 80px rgba(96, 165, 250, 0.35),
+              0 0 140px rgba(244, 114, 182, 0.2),
+              0 35px 100px rgba(0, 0, 0, 0.7);
           }
         }
 
@@ -1761,7 +1824,6 @@ export default function Home() {
 
           .hero {
             padding-left: 16px;
-
             padding-right: 16px;
           }
 
@@ -1775,6 +1837,11 @@ export default function Home() {
             transform: scale(0.78);
 
             margin: -45px 0;
+          }
+
+          .portrait-frame {
+            width: 280px;
+            height: 280px;
           }
 
           .stats {
@@ -1934,25 +2001,21 @@ export default function Home() {
           <div className="stats-grid">
             <div className="stat">
               <div className="stat-number">2025</div>
-
               <div className="stat-label">Mezuniyet</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">12+</div>
-
               <div className="stat-label">Teknoloji</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">5+</div>
-
               <div className="stat-label">Proje</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">01</div>
-
               <div className="stat-label">Yayındaki Ürün</div>
             </div>
           </div>
@@ -2050,9 +2113,7 @@ export default function Home() {
                 </div>
 
                 <div className="ok">✓ mobile systems online</div>
-
                 <div className="ok">✓ production mindset enabled</div>
-
                 <div className="ok">✓ shipping mode active</div>
 
                 <br />
