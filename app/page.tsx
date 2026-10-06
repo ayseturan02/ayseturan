@@ -41,6 +41,8 @@ function TiltCard({ children, className = "" }: TiltCardProps) {
 
     const rect = el.getBoundingClientRect();
 
+    if (rect.width === 0 || rect.height === 0) return;
+
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
@@ -123,14 +125,6 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  /*
-   * SAYFA AÇILDIĞINDA MÜZİĞİ BAŞLATMAYI DENER.
-   *
-   * Tarayıcı sesli autoplay'i engellerse:
-   * - ilk mouse/touch hareketinde
-   * - ilk klavye etkileşiminde
-   * müzik tekrar başlatılmaya çalışılır.
-   */
   useEffect(() => {
     const audio = audioRef.current;
 
@@ -144,12 +138,9 @@ export default function Home() {
         .then(() => {
           setIsPlaying(true);
         })
-        .catch(() => {
-          // Tarayıcı autoplay'i engellediyse sessizce bekliyoruz.
-        });
+        .catch(() => {});
     };
 
-    // İlk açılışta dene
     startMusic();
 
     const handleFirstInteraction = () => {
@@ -204,16 +195,17 @@ export default function Home() {
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
-    } else {
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(() => {
-          setIsPlaying(false);
-        });
+      return;
     }
+
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+      })
+      .catch(() => {
+        setIsPlaying(false);
+      });
   };
 
   const handlePasswordCheck = (e: React.FormEvent) => {
@@ -257,21 +249,43 @@ export default function Home() {
           --scroll-y: 0px;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
           box-sizing: border-box;
         }
 
         html {
           scroll-behavior: smooth;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         body {
           margin: 0;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
           background: var(--bg);
+        }
+
+        img,
+        svg,
+        video,
+        canvas {
+          max-width: 100%;
+        }
+
+        button,
+        input {
+          font: inherit;
         }
 
         .portfolio-shell {
           min-height: 100vh;
+          width: 100%;
+          max-width: 100%;
           overflow-x: hidden;
           color: #e5e7eb;
 
@@ -340,6 +354,8 @@ export default function Home() {
           position: sticky;
           top: 0;
           z-index: 60;
+          width: 100%;
+          max-width: 100%;
 
           border-bottom: 1px solid var(--line);
 
@@ -348,6 +364,7 @@ export default function Home() {
         }
 
         .topbar-inner {
+          width: 100%;
           max-width: 1180px;
           margin: auto;
           padding: 14px 22px;
@@ -356,9 +373,14 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 20px;
+
+          min-width: 0;
         }
 
         .brand {
+          min-width: 0;
+          max-width: 100%;
+
           display: flex;
           align-items: center;
           gap: 10px;
@@ -374,6 +396,7 @@ export default function Home() {
         .brand-dot {
           width: 9px;
           height: 9px;
+          min-width: 9px;
           border-radius: 50%;
 
           background: var(--cyan);
@@ -387,6 +410,7 @@ export default function Home() {
           display: flex;
           gap: 7px;
           align-items: center;
+          min-width: 0;
         }
 
         .navlinks a,
@@ -424,6 +448,7 @@ export default function Home() {
            ========================= */
 
         .hero {
+          width: 100%;
           max-width: 1180px;
           min-height: 760px;
 
@@ -435,20 +460,19 @@ export default function Home() {
 
           display: grid;
 
-          /*
-           * Eskisi:
-           * 1.05fr 0.95fr
-           *
-           * Profil sağa kaymış görünmesin diye
-           * iki tarafı eşitledik.
-           */
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
           align-items: center;
 
           gap: 35px;
 
           z-index: 2;
+
+          overflow: visible;
+        }
+
+        .hero > * {
+          min-width: 0;
         }
 
         .hero::after {
@@ -461,6 +485,8 @@ export default function Home() {
 
           right: 0;
           top: 90px;
+
+          max-width: 100vw;
 
           border-radius: 50%;
 
@@ -482,6 +508,8 @@ export default function Home() {
 
           gap: 8px;
 
+          max-width: 100%;
+
           padding: 8px 12px;
 
           border-radius: 999px;
@@ -497,11 +525,11 @@ export default function Home() {
             SFMono-Regular,
             Menlo,
             monospace;
-
-          box-shadow: 0 0 30px rgba(34, 211, 238, 0.07);
         }
 
         .hero-title {
+          max-width: 100%;
+
           font-size: clamp(52px, 7vw, 92px);
 
           line-height: 0.91;
@@ -513,10 +541,14 @@ export default function Home() {
           color: #fff;
 
           font-weight: 900;
+
+          overflow-wrap: anywhere;
+          word-break: normal;
         }
 
         .hero-title .gradient {
           display: block;
+          max-width: 100%;
 
           background: linear-gradient(
             100deg,
@@ -534,16 +566,23 @@ export default function Home() {
           background-size: 180% auto;
 
           animation: gradientMove 7s ease-in-out infinite;
+
+          overflow-wrap: anywhere;
         }
 
         .hero-copy {
+          width: 100%;
           max-width: 650px;
+          min-width: 0;
 
           color: #94a3b8;
 
           font-size: 15px;
 
           line-height: 1.8;
+
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .hero-copy strong {
@@ -551,6 +590,9 @@ export default function Home() {
         }
 
         .hero-actions {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
           gap: 12px;
@@ -562,9 +604,13 @@ export default function Home() {
 
         .primary-btn,
         .secondary-btn {
+          max-width: 100%;
+
           display: inline-flex;
 
           align-items: center;
+
+          justify-content: center;
 
           gap: 9px;
 
@@ -605,9 +651,12 @@ export default function Home() {
         }
 
         .availability {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
-          align-items: center;
+          align-items: flex-start;
 
           gap: 8px;
 
@@ -616,11 +665,18 @@ export default function Home() {
           color: #64748b;
 
           font-size: 11px;
+
+          line-height: 1.5;
+
+          overflow-wrap: anywhere;
         }
 
         .availability span {
           width: 7px;
           height: 7px;
+          min-width: 7px;
+
+          margin-top: 4px;
 
           border-radius: 50%;
 
@@ -630,12 +686,13 @@ export default function Home() {
         }
 
         /* =========================
-           BÜYÜK MÜZİK OYNATICI
+           MUSIC PLAYER
            ========================= */
 
         .music-player {
           width: min(100%, 560px);
-
+          max-width: 100%;
+          min-width: 0;
           min-height: 94px;
 
           margin-top: 28px;
@@ -754,6 +811,7 @@ export default function Home() {
 
         .music-player-content {
           min-width: 0;
+          max-width: 100%;
 
           display: flex;
 
@@ -783,11 +841,9 @@ export default function Home() {
 
           font-weight: 850;
 
-          white-space: nowrap;
+          white-space: normal;
 
-          overflow: hidden;
-
-          text-overflow: ellipsis;
+          overflow-wrap: anywhere;
         }
 
         .music-player-content small {
@@ -796,6 +852,8 @@ export default function Home() {
           font-size: 10px;
 
           line-height: 1.4;
+
+          overflow-wrap: anywhere;
         }
 
         .music-bars {
@@ -810,6 +868,8 @@ export default function Home() {
           gap: 4px;
 
           padding: 0 5px;
+
+          flex-shrink: 0;
         }
 
         .music-bars i {
@@ -826,6 +886,7 @@ export default function Home() {
           box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
 
           animation: musicBars 1s ease-in-out infinite;
+
           animation-play-state: paused;
         }
 
@@ -858,9 +919,10 @@ export default function Home() {
            ========================= */
 
         .hero-visual {
-          min-height: 550px;
-
           width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          min-height: 550px;
 
           display: flex;
 
@@ -878,7 +940,7 @@ export default function Home() {
         }
 
         /* =========================
-           PROFİL FOTOĞRAFI
+           PROFILE
            ========================= */
 
         .portrait-frame {
@@ -998,6 +1060,8 @@ export default function Home() {
           text-align: center;
 
           text-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+
+          overflow-wrap: anywhere;
         }
 
         /* =========================
@@ -1007,6 +1071,8 @@ export default function Home() {
         .orbital-system {
           width: 530px;
           height: 530px;
+
+          max-width: 100%;
 
           position: relative;
 
@@ -1198,6 +1264,7 @@ export default function Home() {
            ========================= */
 
         .stats {
+          width: 100%;
           max-width: 1180px;
 
           margin: -35px auto 100px;
@@ -1210,9 +1277,12 @@ export default function Home() {
         }
 
         .stats-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
 
           border: 1px solid var(--line);
 
@@ -1228,6 +1298,8 @@ export default function Home() {
         }
 
         .stat {
+          min-width: 0;
+
           padding: 25px;
 
           border-right: 1px solid var(--line);
@@ -1261,6 +1333,8 @@ export default function Home() {
           text-transform: uppercase;
 
           letter-spacing: 0.1em;
+
+          overflow-wrap: anywhere;
         }
 
         /* =========================
@@ -1268,6 +1342,7 @@ export default function Home() {
            ========================= */
 
         .section {
+          width: 100%;
           max-width: 1180px;
 
           margin: 0 auto;
@@ -1277,18 +1352,30 @@ export default function Home() {
           position: relative;
 
           z-index: 3;
+
+          min-width: 0;
         }
 
         .section-heading {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
-          align-items: end;
+          align-items: flex-end;
 
           justify-content: space-between;
 
           gap: 20px;
 
           margin-bottom: 34px;
+
+          min-width: 0;
+        }
+
+        .section-heading > * {
+          min-width: 0;
+          max-width: 100%;
         }
 
         .section-kicker {
@@ -1303,6 +1390,8 @@ export default function Home() {
           text-transform: uppercase;
 
           margin-bottom: 9px;
+
+          overflow-wrap: anywhere;
         }
 
         .section-title {
@@ -1315,9 +1404,15 @@ export default function Home() {
           letter-spacing: -0.05em;
 
           margin: 0;
+
+          max-width: 100%;
+
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .section-desc {
+          width: 100%;
           max-width: 430px;
 
           color: #64748b;
@@ -1325,6 +1420,8 @@ export default function Home() {
           font-size: 12px;
 
           line-height: 1.7;
+
+          overflow-wrap: anywhere;
         }
 
         .glass {
@@ -1352,6 +1449,9 @@ export default function Home() {
           --ry: 0deg;
           --mx: 50%;
           --my: 50%;
+
+          min-width: 0;
+          max-width: 100%;
 
           transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
 
@@ -1387,9 +1487,13 @@ export default function Home() {
            ========================= */
 
         .skills-layout {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           display: grid;
 
-          grid-template-columns: 0.7fr 1.3fr;
+          grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
 
           gap: 18px;
         }
@@ -1410,9 +1514,13 @@ export default function Home() {
           gap: 9px;
 
           margin-top: 25px;
+
+          min-width: 0;
         }
 
         .skill {
+          max-width: 100%;
+
           padding: 9px 12px;
 
           border-radius: 11px;
@@ -1424,6 +1532,8 @@ export default function Home() {
           border: 1px solid;
 
           transition: 0.25s;
+
+          overflow-wrap: anywhere;
         }
 
         .skill:hover {
@@ -1507,6 +1617,10 @@ export default function Home() {
            ========================= */
 
         .terminal {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           overflow: hidden;
@@ -1521,6 +1635,8 @@ export default function Home() {
         }
 
         .terminal-top {
+          min-width: 0;
+
           padding: 12px 15px;
 
           border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -1535,10 +1651,18 @@ export default function Home() {
         .terminal-top i {
           width: 8px;
           height: 8px;
+          min-width: 8px;
 
           border-radius: 50%;
 
           background: #334155;
+        }
+
+        .terminal-top span {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .terminal-body {
@@ -1549,6 +1673,11 @@ export default function Home() {
             monospace;
 
           color: #64748b;
+
+          overflow-x: auto;
+
+          white-space: normal;
+          overflow-wrap: anywhere;
         }
 
         .terminal-body .cmd {
@@ -1568,14 +1697,20 @@ export default function Home() {
            ========================= */
 
         .experience-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
 
           gap: 16px;
         }
 
         .experience {
+          width: 100%;
+          min-width: 0;
+
           padding: 25px;
 
           border-radius: 24px;
@@ -1599,6 +1734,8 @@ export default function Home() {
           font-size: 16px;
 
           letter-spacing: -0.02em;
+
+          overflow-wrap: anywhere;
         }
 
         .experience p {
@@ -1609,6 +1746,8 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.75;
+
+          overflow-wrap: anywhere;
         }
 
         /* =========================
@@ -1616,14 +1755,21 @@ export default function Home() {
            ========================= */
 
         .projects {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           display: grid;
 
-          grid-template-columns: repeat(12, 1fr);
+          grid-template-columns: repeat(12, minmax(0, 1fr));
 
           gap: 16px;
         }
 
         .project {
+          width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           overflow: hidden;
@@ -1656,6 +1802,9 @@ export default function Home() {
         }
 
         .project-visual {
+          width: 100%;
+          max-width: 100%;
+
           height: 125px;
 
           border-radius: 19px;
@@ -1749,6 +1898,7 @@ export default function Home() {
           display: inline-flex;
 
           width: fit-content;
+          max-width: 100%;
 
           padding: 6px 8px;
 
@@ -1767,6 +1917,8 @@ export default function Home() {
           text-transform: uppercase;
 
           letter-spacing: 0.07em;
+
+          overflow-wrap: anywhere;
         }
 
         .project h3 {
@@ -1775,6 +1927,8 @@ export default function Home() {
           margin: 12px 0 7px;
 
           font-size: 17px;
+
+          overflow-wrap: anywhere;
         }
 
         .project p {
@@ -1785,9 +1939,14 @@ export default function Home() {
           line-height: 1.7;
 
           margin: 0;
+
+          overflow-wrap: anywhere;
         }
 
         .project-footer {
+          width: 100%;
+          min-width: 0;
+
           display: flex;
 
           justify-content: space-between;
@@ -1801,6 +1960,11 @@ export default function Home() {
           padding-top: 15px;
 
           border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .project-footer > * {
+          min-width: 0;
+          max-width: 100%;
         }
 
         .project-link {
@@ -1817,6 +1981,8 @@ export default function Home() {
           align-items: center;
 
           gap: 6px;
+
+          flex-shrink: 0;
         }
 
         /* =========================
@@ -1824,13 +1990,17 @@ export default function Home() {
            ========================= */
 
         .education-card {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           padding: 30px;
 
           display: grid;
 
-          grid-template-columns: 130px 1fr;
+          grid-template-columns: 130px minmax(0, 1fr);
 
           gap: 25px;
 
@@ -1851,6 +2021,8 @@ export default function Home() {
           color: #fff;
 
           font-size: 18px;
+
+          overflow-wrap: anywhere;
         }
 
         .education-card p {
@@ -1861,6 +2033,8 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.7;
+
+          overflow-wrap: anywhere;
         }
 
         /* =========================
@@ -1868,6 +2042,10 @@ export default function Home() {
            ========================= */
 
         .gallery {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 28px;
 
           padding: 28px;
@@ -1904,6 +2082,8 @@ export default function Home() {
           color: #fff;
 
           margin: 0 0 8px;
+
+          overflow-wrap: anywhere;
         }
 
         .gallery p {
@@ -1912,9 +2092,12 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.6;
+
+          overflow-wrap: anywhere;
         }
 
         .gallery-form {
+          width: 100%;
           max-width: 420px;
 
           margin: 20px auto 0;
@@ -1928,6 +2111,7 @@ export default function Home() {
           flex: 1;
 
           min-width: 0;
+          max-width: 100%;
 
           border: 1px solid rgba(148, 163, 184, 0.15);
 
@@ -1964,6 +2148,8 @@ export default function Home() {
           font-weight: 900;
 
           cursor: pointer;
+
+          flex-shrink: 0;
         }
 
         .gallery-form button:hover {
@@ -1973,9 +2159,12 @@ export default function Home() {
         }
 
         .photo-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
 
           gap: 12px;
 
@@ -1983,6 +2172,9 @@ export default function Home() {
         }
 
         .photo {
+          width: 100%;
+          min-width: 0;
+
           height: 190px;
 
           border-radius: 18px;
@@ -2010,6 +2202,9 @@ export default function Home() {
            ========================= */
 
         footer {
+          width: 100%;
+          max-width: 100%;
+
           border-top: 1px solid var(--line);
 
           padding: 55px 22px;
@@ -2025,6 +2220,8 @@ export default function Home() {
           position: relative;
 
           z-index: 3;
+
+          overflow-wrap: anywhere;
         }
 
         .footer-name {
@@ -2136,7 +2333,7 @@ export default function Home() {
 
         @media (max-width: 900px) {
           .hero {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
 
             padding-top: 55px;
 
@@ -2145,14 +2342,18 @@ export default function Home() {
             gap: 20px;
           }
 
-          .hero-visual {
-            min-height: 480px;
-
-            width: 100%;
-          }
-
           .hero > div:first-child {
             width: 100%;
+            max-width: 100%;
+            min-width: 0;
+          }
+
+          .hero-visual {
+            width: 100%;
+            max-width: 100%;
+            min-height: 480px;
+
+            transform-origin: center center;
           }
 
           .music-player {
@@ -2160,15 +2361,15 @@ export default function Home() {
           }
 
           .skills-layout {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .experience-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .stat:nth-child(2) {
@@ -2190,7 +2391,24 @@ export default function Home() {
 
         @media (max-width: 620px) {
           .topbar-inner {
+            width: 100%;
             padding: 12px 16px;
+          }
+
+          .brand {
+            font-size: 10px;
+            letter-spacing: 0.045em;
+            gap: 7px;
+          }
+
+          .brand-dot {
+            width: 7px;
+            height: 7px;
+            min-width: 7px;
+          }
+
+          .navlinks {
+            flex-shrink: 0;
           }
 
           .navlinks a {
@@ -2199,37 +2417,74 @@ export default function Home() {
 
           .music-button {
             padding: 8px 10px;
+            white-space: nowrap;
           }
 
           .hero {
-            padding-left: 16px;
-            padding-right: 16px;
+            width: 100%;
+            max-width: 100%;
+
+            padding: 48px 16px 55px;
+
+            grid-template-columns: minmax(0, 1fr);
+
+            gap: 10px;
+
+            overflow: visible;
           }
 
           .hero-title {
-            font-size: 53px;
+            width: 100%;
+            max-width: 100%;
+
+            font-size: clamp(40px, 12.8vw, 53px);
+
+            line-height: 0.95;
+
+            letter-spacing: -0.055em;
+
+            margin-top: 20px;
           }
 
           .hero-copy {
+            width: 100%;
+            max-width: 100%;
+
             font-size: 14px;
+
+            line-height: 1.7;
           }
 
           .hero-actions {
+            width: 100%;
+            max-width: 100%;
+
             margin-top: 24px;
+
+            flex-direction: column;
+
+            align-items: stretch;
+          }
+
+          .primary-btn,
+          .secondary-btn {
+            width: 100%;
+            max-width: 100%;
           }
 
           .availability {
-            line-height: 1.5;
+            font-size: 10px;
           }
 
           .music-player {
             width: 100%;
+            max-width: 100%;
 
-            min-height: 88px;
+            min-height: 82px;
 
-            padding: 13px;
+            padding: 12px;
 
-            gap: 11px;
+            gap: 10px;
 
             border-radius: 19px;
           }
@@ -2238,13 +2493,18 @@ export default function Home() {
             width: 50px;
             height: 50px;
 
-            flex-basis: 50px;
+            flex: 0 0 50px;
 
             border-radius: 15px;
           }
 
+          .music-player-content {
+            min-width: 0;
+          }
+
           .music-player-content strong {
             font-size: 13px;
+            line-height: 1.25;
           }
 
           .music-player-content small {
@@ -2252,87 +2512,244 @@ export default function Home() {
           }
 
           .music-bars {
-            gap: 3px;
-          }
-
-          .music-bars i {
-            width: 3px;
+            display: none;
           }
 
           .hero-visual {
-            min-height: 400px;
+            width: 100%;
+            max-width: 100%;
 
-            transform: scale(0.78);
+            min-height: 390px;
 
-            margin: -45px 0;
+            margin: -10px 0 -35px;
 
-            width: 128%;
-            margin-left: -14%;
+            transform: scale(0.72);
+
+            transform-origin: center center;
+
+            overflow: visible;
+          }
+
+          .orbital-system {
+            width: 530px;
+            height: 530px;
+            max-width: none;
           }
 
           .portrait-frame {
-            width: 280px;
-            height: 280px;
+            width: 260px;
+            height: 260px;
 
             left: 50%;
             top: 50%;
           }
 
-          .orbital-system {
-            transform: translateY(calc(var(--scroll-y) * -0.03px))
-              rotateX(12deg) rotateZ(-8deg);
+          .portrait-label {
+            left: 16px;
+            right: 16px;
+            bottom: 15px;
+            font-size: 8px;
           }
 
           .stats {
+            width: 100%;
+            max-width: 100%;
+
             padding: 0 16px;
+
+            margin: -15px auto 60px;
+          }
+
+          .stats-grid {
+            width: 100%;
+
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            border-radius: 20px;
+          }
+
+          .stat {
+            min-width: 0;
+            padding: 17px 13px;
+          }
+
+          .stat-number {
+            font-size: 22px;
+          }
+
+          .stat-label {
+            font-size: 8px;
+            letter-spacing: 0.06em;
           }
 
           .section {
+            width: 100%;
+            max-width: 100%;
+
             padding: 65px 16px;
           }
 
           .section-heading {
             display: block;
+
+            margin-bottom: 25px;
+          }
+
+          .section-title {
+            font-size: clamp(28px, 9vw, 38px);
+
+            line-height: 1.02;
           }
 
           .section-desc {
+            max-width: 100%;
+
             margin-top: 14px;
+
+            font-size: 11px;
           }
 
-          .stats-grid {
-            grid-template-columns: 1fr 1fr;
+          .skills-layout {
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
           }
 
-          .stat {
-            padding: 18px;
+          .skills-main {
+            padding: 20px;
+
+            min-height: auto;
+
+            border-radius: 22px;
           }
 
-          .stat-number {
-            font-size: 23px;
+          .skills-grid {
+            gap: 7px;
+          }
+
+          .skill {
+            padding: 8px 10px;
+            font-size: 9px;
+          }
+
+          .terminal {
+            min-height: 0;
+            border-radius: 22px;
+          }
+
+          .terminal-body {
+            padding: 20px;
+
+            font-size: 10px;
+
+            line-height: 1.9;
+          }
+
+          .experience-grid {
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .experience {
+            min-height: 0;
+
+            padding: 21px;
+
+            border-radius: 22px;
+          }
+
+          .experience h3 {
+            font-size: 15px;
+          }
+
+          .projects {
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .projects .project {
+            grid-column: auto !important;
+
+            width: 100%;
+            max-width: 100%;
+
+            min-height: 0;
+
+            padding: 20px;
+
+            border-radius: 22px;
+          }
+
+          .project-visual {
+            height: 115px;
+
+            margin-bottom: 18px;
+          }
+
+          .project h3 {
+            font-size: 16px;
+          }
+
+          .project-footer {
+            align-items: flex-start;
           }
 
           .education-card {
-            grid-template-columns: 1fr;
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
+
+            gap: 16px;
+
+            padding: 22px;
+
+            border-radius: 22px;
+          }
+
+          .education-card h3 {
+            font-size: 16px;
+          }
+
+          .gallery {
+            padding: 20px;
+
+            border-radius: 22px;
+          }
+
+          .gallery-form {
+            width: 100%;
+            max-width: 100%;
+
+            flex-direction: column;
+          }
+
+          .gallery-form input {
+            width: 100%;
+            height: 42px;
+          }
+
+          .gallery-form button {
+            width: 100%;
+            height: 42px;
           }
 
           .photo-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .photo {
             height: 240px;
           }
 
-          .gallery-form {
-            flex-direction: column;
+          footer {
+            padding: 45px 16px;
           }
 
-          .gallery-form button {
-            height: 42px;
-          }
-
-          .brand {
-            font-size: 10px;
+          footer > div:first-child {
+            flex-wrap: wrap;
           }
         }
 
@@ -2341,62 +2758,168 @@ export default function Home() {
            ========================= */
 
         @media (max-width: 390px) {
+          .topbar-inner {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .brand {
+            font-size: 9px;
+            gap: 6px;
+          }
+
+          .music-button {
+            padding: 7px 8px;
+            font-size: 10px;
+          }
+
+          .hero {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
           .hero-title {
-            font-size: 47px;
+            font-size: clamp(36px, 12.5vw, 47px);
+          }
+
+          .hero-copy {
+            font-size: 13px;
           }
 
           .music-player {
-            min-height: 82px;
+            min-height: 80px;
+
+            padding: 10px;
+
+            gap: 9px;
           }
 
           .music-player-icon {
-            width: 46px;
-            height: 46px;
+            width: 45px;
+            height: 45px;
 
-            flex-basis: 46px;
+            flex: 0 0 45px;
+
+            border-radius: 13px;
           }
 
-          .music-bars {
-            display: none;
+          .music-player-content strong {
+            font-size: 12px;
+          }
+
+          .music-player-content small {
+            font-size: 8px;
           }
 
           .hero-visual {
-            transform: scale(0.7);
+            min-height: 350px;
 
-            width: 142%;
+            transform: scale(0.62);
 
-            margin-left: -21%;
+            margin: -30px 0 -65px;
+          }
+
+          .portrait-frame {
+            width: 250px;
+            height: 250px;
+          }
+
+          .stats {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .stat {
+            padding: 15px 11px;
+          }
+
+          .stat-number {
+            font-size: 20px;
+          }
+
+          .section {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .skills-main,
+          .terminal-body,
+          .experience,
+          .project,
+          .education-card,
+          .gallery {
+            padding-left: 17px;
+            padding-right: 17px;
+          }
+        }
+
+        /* =========================
+           EXTRA SMALL PHONES
+           ========================= */
+
+        @media (max-width: 340px) {
+          .brand {
+            font-size: 8px;
+          }
+
+          .music-button {
+            font-size: 9px;
+            padding: 6px 7px;
+          }
+
+          .hero-title {
+            font-size: 35px;
+          }
+
+          .hero-copy {
+            font-size: 12px;
+          }
+
+          .music-player-content strong {
+            font-size: 11px;
+          }
+
+          .music-player-content small {
+            font-size: 8px;
+          }
+
+          .hero-visual {
+            transform: scale(0.55);
+            margin-top: -45px;
+            margin-bottom: -90px;
+          }
+
+          .stat-number {
+            font-size: 18px;
+          }
+
+          .stat-label {
+            font-size: 7px;
           }
         }
       `}</style>
 
       <div className="noise" />
 
-      {/* =========================
-          AUDIO
-          ========================= */}
-
+      {/* AUDIO */}
       <audio ref={audioRef} loop preload="auto" src="/music.mp3" />
 
-      {/* =========================
-          NAVBAR
-          ========================= */}
-
+      {/* NAVBAR */}
       <header className="topbar">
         <div className="topbar-inner">
           <a href="#home" className="brand">
             <span className="brand-dot" />
-            AYŞE TURAN <span style={{ color: "#475569" }}>//</span> SOFTWARE
-            ENGINEER
+
+            <span>
+              AYŞE TURAN <span style={{ color: "#475569" }}>//</span> SOFTWARE
+              ENGINEER
+            </span>
           </a>
 
           <nav className="navlinks">
             <a href="#skills">Skills</a>
-
             <a href="#experience">Experience</a>
-
             <a href="#projects">Proje</a>
-
             <a href="#education">Education</a>
 
             <button
@@ -2414,10 +2937,7 @@ export default function Home() {
       </header>
 
       <main id="home">
-        {/* =========================
-            HERO
-            ========================= */}
-
+        {/* HERO */}
         <section className="hero">
           <div>
             <div className="eyebrow">
@@ -2436,7 +2956,7 @@ export default function Home() {
               Fırat Üniversitesi <strong>Yazılım Mühendisliği</strong>{" "}
               mezunuyum. React Native, Firebase ve modern web teknolojileriyle
               gerçek ürünler geliştiriyorum. Mobil fikirleri çalışan,
-              yayınlanabilir deneyimlere dönüştürmeye calışıyorum.
+              yayınlanabilir deneyimlere dönüştürmeye çalışıyorum.
             </p>
 
             <div className="hero-actions">
@@ -2456,13 +2976,22 @@ export default function Home() {
 
             <div className="availability">
               <span />
-              Yazılım ve mobil geliştirme fırsatlarına açığım
+              <span
+                style={{
+                  width: "auto",
+                  height: "auto",
+                  minWidth: 0,
+                  background: "transparent",
+                  boxShadow: "none",
+                  borderRadius: 0,
+                  margin: 0,
+                }}
+              >
+                Yazılım ve mobil geliştirme fırsatlarına açığım
+              </span>
             </div>
 
-            {/* =========================
-                BÜYÜK MÜZİK ALANI
-                ========================= */}
-
+            {/* MUSIC */}
             <button
               type="button"
               className={`music-player ${isPlaying ? "playing" : ""}`}
@@ -2499,31 +3028,19 @@ export default function Home() {
             </button>
           </div>
 
-          {/* =========================
-              PROFILE / ORBIT
-              ========================= */}
-
+          {/* PROFILE / ORBIT */}
           <div className="hero-visual">
             <OrbitalSystem />
 
             <div className="portrait-frame">
               <div className="portrait-inner">
-                <img src="/photo1.jpeg" alt="Ayşe Turan" />
-
-                <div className="portrait-label">
-                  <div style={{ color: "#64748b" }}>KİMLİK // 001</div>
-
-                  <div>AYŞE TURAN · MOBİL YAZILIM GELİŞTİRİCİ</div>
-                </div>
+                <img src="/photo11.jpeg" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* =========================
-            STATS
-            ========================= */}
-
+        {/* STATS */}
         <section className="stats">
           <div className="stats-grid">
             <div className="stat">
@@ -2548,10 +3065,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =========================
-            SKILLS
-            ========================= */}
-
+        {/* SKILLS */}
         <section id="skills" className="section">
           <div className="section-heading">
             <div>
@@ -2574,9 +3088,11 @@ export default function Home() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  gap: 15,
+                  minWidth: 0,
                 }}
               >
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="section-kicker" style={{ margin: 0 }}>
                     ANA TEKNOLOJİLER
                   </div>
@@ -2586,6 +3102,7 @@ export default function Home() {
                       color: "#fff",
                       margin: "8px 0 0",
                       fontSize: 20,
+                      overflowWrap: "anywhere",
                     }}
                   >
                     Geliştirme araçlarım
@@ -2659,10 +3176,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =========================
-            EXPERIENCE
-            ========================= */}
-
+        {/* EXPERIENCE */}
         <section id="experience" className="section">
           <div className="section-heading">
             <div>
@@ -2734,10 +3248,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =========================
-            PROJECTS
-            ========================= */}
-
+        {/* PROJECTS */}
         <section id="projects" className="section">
           <div className="section-heading">
             <div>
@@ -2756,7 +3267,6 @@ export default function Home() {
 
           <div className="projects">
             {/* PROJECT 1 */}
-
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2793,7 +3303,6 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 2 */}
-
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2835,7 +3344,6 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 3 */}
-
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2877,7 +3385,6 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 4 */}
-
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2919,7 +3426,6 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 5 */}
-
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2962,10 +3468,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =========================
-            EDUCATION
-            ========================= */}
-
+        {/* EDUCATION */}
         <section id="education" className="section">
           <div className="section-heading">
             <div>
@@ -3022,10 +3525,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* =========================
-            PRIVATE GALLERY
-            ========================= */}
-
+        {/* PRIVATE GALLERY */}
         <section className="section" style={{ paddingTop: 30 }}>
           <div className="section-heading">
             <div>
@@ -3114,15 +3614,14 @@ export default function Home() {
         </section>
       </main>
 
-      {/* =========================
-          FOOTER
-          ========================= */}
-
+      {/* FOOTER */}
       <footer>
         <div
           style={{
             display: "flex",
             justifyContent: "center",
+            alignItems: "center",
+            flexWrap: "wrap",
             gap: 10,
             marginBottom: 15,
           }}
