@@ -123,6 +123,62 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  /*
+   * SAYFA AÇILDIĞINDA MÜZİĞİ BAŞLATMAYI DENER.
+   *
+   * Tarayıcı sesli autoplay'i engellerse:
+   * - ilk mouse/touch hareketinde
+   * - ilk klavye etkileşiminde
+   * müzik tekrar başlatılmaya çalışılır.
+   */
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    audio.volume = 0.35;
+
+    const startMusic = () => {
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(() => {
+          // Tarayıcı autoplay'i engellediyse sessizce bekliyoruz.
+        });
+    };
+
+    // İlk açılışta dene
+    startMusic();
+
+    const handleFirstInteraction = () => {
+      startMusic();
+
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+
+    window.addEventListener("pointerdown", handleFirstInteraction, {
+      once: true,
+    });
+
+    window.addEventListener("keydown", handleFirstInteraction, {
+      once: true,
+    });
+
+    window.addEventListener("touchstart", handleFirstInteraction, {
+      once: true,
+    });
+
+    return () => {
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+  }, []);
+
   useEffect(() => {
     const onScroll = () => {
       document.documentElement.style.setProperty(
@@ -131,7 +187,9 @@ export default function Home() {
       );
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -139,18 +197,22 @@ export default function Home() {
   }, []);
 
   const toggleMuzik = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    if (!audio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current
+      audio
         .play()
         .then(() => {
           setIsPlaying(true);
         })
-        .catch(() => {});
+        .catch(() => {
+          setIsPlaying(false);
+        });
     }
   };
 
@@ -270,6 +332,10 @@ export default function Home() {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
         }
 
+        /* =========================
+           NAVBAR
+           ========================= */
+
         .topbar {
           position: sticky;
           top: 0;
@@ -353,6 +419,10 @@ export default function Home() {
           background: rgba(34, 211, 238, 0.07);
         }
 
+        /* =========================
+           HERO
+           ========================= */
+
         .hero {
           max-width: 1180px;
           min-height: 760px;
@@ -365,7 +435,14 @@ export default function Home() {
 
           display: grid;
 
-          grid-template-columns: 1.05fr 0.95fr;
+          /*
+           * Eskisi:
+           * 1.05fr 0.95fr
+           *
+           * Profil sağa kaymış görünmesin diye
+           * iki tarafı eşitledik.
+           */
+          grid-template-columns: 1fr 1fr;
 
           align-items: center;
 
@@ -552,8 +629,177 @@ export default function Home() {
           box-shadow: 0 0 13px #34d399;
         }
 
-        .hero-visual {
-          min-height: 550px;
+        /* =========================
+           BÜYÜK MÜZİK OYNATICI
+           ========================= */
+
+        .music-player {
+          width: min(100%, 560px);
+
+          min-height: 94px;
+
+          margin-top: 28px;
+
+          padding: 16px 18px;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 15px;
+
+          text-align: left;
+
+          border-radius: 22px;
+
+          border: 1px solid rgba(103, 232, 249, 0.18);
+
+          background:
+            radial-gradient(
+              circle at 0% 50%,
+              rgba(34, 211, 238, 0.12),
+              transparent 35%
+            ),
+            linear-gradient(
+              135deg,
+              rgba(15, 23, 42, 0.9),
+              rgba(6, 10, 19, 0.78)
+            );
+
+          color: #fff;
+
+          cursor: pointer;
+
+          position: relative;
+
+          overflow: hidden;
+
+          box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.28),
+            inset 0 1px rgba(255, 255, 255, 0.04);
+
+          transition:
+            transform 0.3s ease,
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .music-player::before {
+          content: "";
+
+          position: absolute;
+
+          inset: 0;
+
+          background: linear-gradient(
+            110deg,
+            transparent 20%,
+            rgba(103, 232, 249, 0.08) 50%,
+            transparent 80%
+          );
+
+          transform: translateX(-100%);
+
+          transition: transform 0.7s ease;
+
+          pointer-events: none;
+        }
+
+        .music-player:hover {
+          transform: translateY(-4px);
+
+          border-color: rgba(103, 232, 249, 0.38);
+
+          box-shadow:
+            0 25px 75px rgba(0, 0, 0, 0.38),
+            0 0 40px rgba(34, 211, 238, 0.09),
+            inset 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .music-player:hover::before {
+          transform: translateX(100%);
+        }
+
+        .music-player.playing {
+          border-color: rgba(103, 232, 249, 0.42);
+
+          box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.38),
+            0 0 45px rgba(34, 211, 238, 0.14),
+            inset 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .music-player-icon {
+          width: 58px;
+          height: 58px;
+
+          flex: 0 0 58px;
+
+          display: grid;
+
+          place-items: center;
+
+          border-radius: 18px;
+
+          color: #031017;
+
+          background: linear-gradient(135deg, #67e8f9, #60a5fa, #a78bfa);
+
+          box-shadow:
+            0 0 25px rgba(34, 211, 238, 0.25),
+            inset 0 1px rgba(255, 255, 255, 0.5);
+
+          animation: musicPulse 3s ease-in-out infinite;
+        }
+
+        .music-player-content {
+          min-width: 0;
+
+          display: flex;
+
+          flex-direction: column;
+
+          gap: 4px;
+
+          flex: 1;
+        }
+
+        .music-label {
+          color: #67e8f9;
+
+          font:
+            800 9px ui-monospace,
+            monospace;
+
+          letter-spacing: 0.16em;
+
+          text-transform: uppercase;
+        }
+
+        .music-player-content strong {
+          color: #fff;
+
+          font-size: 15px;
+
+          font-weight: 850;
+
+          white-space: nowrap;
+
+          overflow: hidden;
+
+          text-overflow: ellipsis;
+        }
+
+        .music-player-content small {
+          color: #64748b;
+
+          font-size: 10px;
+
+          line-height: 1.4;
+        }
+
+        .music-bars {
+          height: 35px;
 
           display: flex;
 
@@ -561,9 +807,74 @@ export default function Home() {
 
           justify-content: center;
 
-          perspective: 1200px;
+          gap: 4px;
+
+          padding: 0 5px;
+        }
+
+        .music-bars i {
+          display: block;
+
+          width: 4px;
+
+          height: 12px;
+
+          border-radius: 999px;
+
+          background: #67e8f9;
+
+          box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+
+          animation: musicBars 1s ease-in-out infinite;
+          animation-play-state: paused;
+        }
+
+        .music-player.playing .music-bars i {
+          animation-play-state: running;
+        }
+
+        .music-bars i:nth-child(1) {
+          animation-delay: 0s;
+        }
+
+        .music-bars i:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .music-bars i:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        .music-bars i:nth-child(4) {
+          animation-delay: 0.45s;
+        }
+
+        .music-bars i:nth-child(5) {
+          animation-delay: 0.6s;
+        }
+
+        /* =========================
+           HERO VISUAL
+           ========================= */
+
+        .hero-visual {
+          min-height: 550px;
+
+          width: 100%;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          justify-self: center;
 
           position: relative;
+
+          perspective: 1200px;
+
+          overflow: visible;
         }
 
         /* =========================
@@ -578,6 +889,8 @@ export default function Home() {
 
           left: 50%;
           top: 50%;
+
+          margin: 0;
 
           transform: translate(-50%, -50%);
 
@@ -880,6 +1193,10 @@ export default function Home() {
           box-shadow: 0 0 25px rgba(52, 211, 153, 0.35);
         }
 
+        /* =========================
+           STATS
+           ========================= */
+
         .stats {
           max-width: 1180px;
 
@@ -945,6 +1262,10 @@ export default function Home() {
 
           letter-spacing: 0.1em;
         }
+
+        /* =========================
+           SECTIONS
+           ========================= */
 
         .section {
           max-width: 1180px;
@@ -1022,6 +1343,10 @@ export default function Home() {
             0 25px 80px rgba(0, 0, 0, 0.2);
         }
 
+        /* =========================
+           TILT CARDS
+           ========================= */
+
         .tilt-card {
           --rx: 0deg;
           --ry: 0deg;
@@ -1056,6 +1381,10 @@ export default function Home() {
 
           opacity: 0.8;
         }
+
+        /* =========================
+           SKILLS
+           ========================= */
 
         .skills-layout {
           display: grid;
@@ -1103,99 +1432,79 @@ export default function Home() {
 
         .skill-yellow {
           color: #fde047;
-
           background: #eab3080d;
-
           border-color: #eab30830;
         }
 
         .skill-blue {
           color: #60a5fa;
-
           background: #3b82f60d;
-
           border-color: #3b82f630;
         }
 
         .skill-slate {
           color: #cbd5e1;
-
           background: #64748b0d;
-
           border-color: #64748b30;
         }
 
         .skill-indigo {
           color: #818cf8;
-
           background: #6366f10d;
-
           border-color: #6366f130;
         }
 
         .skill-cyan {
           color: #67e8f9;
-
           background: #06b6d40d;
-
           border-color: #06b6d430;
         }
 
         .skill-sky {
           color: #7dd3fc;
-
           background: #0ea5e90d;
-
           border-color: #0ea5e930;
         }
 
         .skill-white {
           color: #fff;
-
           background: #ffffff0d;
-
           border-color: #ffffff22;
         }
 
         .skill-amber {
           color: #fbbf24;
-
           background: #f59e0b0d;
-
           border-color: #f59e0b30;
         }
 
         .skill-orange {
           color: #fb923c;
-
           background: #f973160d;
-
           border-color: #f9731630;
         }
 
         .skill-emerald {
           color: #34d399;
-
           background: #10b9810d;
-
           border-color: #10b98130;
         }
 
         .skill-teal {
           color: #2dd4bf;
-
           background: #14b8a60d;
-
           border-color: #14b8a630;
         }
 
         .skill-rose {
           color: #fb7185;
-
           background: #f43f5e0d;
-
           border-color: #f43f5e30;
         }
+
+        /* =========================
+           TERMINAL
+           ========================= */
 
         .terminal {
           border-radius: 26px;
@@ -1254,6 +1563,10 @@ export default function Home() {
           color: #c4b5fd;
         }
 
+        /* =========================
+           EXPERIENCE
+           ========================= */
+
         .experience-grid {
           display: grid;
 
@@ -1297,6 +1610,10 @@ export default function Home() {
 
           line-height: 1.75;
         }
+
+        /* =========================
+           PROJECTS
+           ========================= */
 
         .projects {
           display: grid;
@@ -1502,6 +1819,10 @@ export default function Home() {
           gap: 6px;
         }
 
+        /* =========================
+           EDUCATION
+           ========================= */
+
         .education-card {
           border-radius: 26px;
 
@@ -1541,6 +1862,10 @@ export default function Home() {
 
           line-height: 1.7;
         }
+
+        /* =========================
+           PRIVATE GALLERY
+           ========================= */
 
         .gallery {
           border-radius: 28px;
@@ -1680,6 +2005,10 @@ export default function Home() {
           transform: scale(1.06);
         }
 
+        /* =========================
+           FOOTER
+           ========================= */
+
         footer {
           border-top: 1px solid var(--line);
 
@@ -1779,6 +2108,32 @@ export default function Home() {
           }
         }
 
+        @keyframes musicBars {
+          0%,
+          100% {
+            height: 8px;
+          }
+
+          50% {
+            height: 31px;
+          }
+        }
+
+        @keyframes musicPulse {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        /* =========================
+           TABLET
+           ========================= */
+
         @media (max-width: 900px) {
           .hero {
             grid-template-columns: 1fr;
@@ -1786,10 +2141,22 @@ export default function Home() {
             padding-top: 55px;
 
             min-height: auto;
+
+            gap: 20px;
           }
 
           .hero-visual {
             min-height: 480px;
+
+            width: 100%;
+          }
+
+          .hero > div:first-child {
+            width: 100%;
+          }
+
+          .music-player {
+            max-width: 600px;
           }
 
           .skills-layout {
@@ -1817,9 +2184,21 @@ export default function Home() {
           }
         }
 
+        /* =========================
+           MOBILE
+           ========================= */
+
         @media (max-width: 620px) {
+          .topbar-inner {
+            padding: 12px 16px;
+          }
+
           .navlinks a {
             display: none;
+          }
+
+          .music-button {
+            padding: 8px 10px;
           }
 
           .hero {
@@ -1831,17 +2210,77 @@ export default function Home() {
             font-size: 53px;
           }
 
+          .hero-copy {
+            font-size: 14px;
+          }
+
+          .hero-actions {
+            margin-top: 24px;
+          }
+
+          .availability {
+            line-height: 1.5;
+          }
+
+          .music-player {
+            width: 100%;
+
+            min-height: 88px;
+
+            padding: 13px;
+
+            gap: 11px;
+
+            border-radius: 19px;
+          }
+
+          .music-player-icon {
+            width: 50px;
+            height: 50px;
+
+            flex-basis: 50px;
+
+            border-radius: 15px;
+          }
+
+          .music-player-content strong {
+            font-size: 13px;
+          }
+
+          .music-player-content small {
+            font-size: 9px;
+          }
+
+          .music-bars {
+            gap: 3px;
+          }
+
+          .music-bars i {
+            width: 3px;
+          }
+
           .hero-visual {
             min-height: 400px;
 
             transform: scale(0.78);
 
             margin: -45px 0;
+
+            width: 128%;
+            margin-left: -14%;
           }
 
           .portrait-frame {
             width: 280px;
             height: 280px;
+
+            left: 50%;
+            top: 50%;
+          }
+
+          .orbital-system {
+            transform: translateY(calc(var(--scroll-y) * -0.03px))
+              rotateX(12deg) rotateZ(-8deg);
           }
 
           .stats {
@@ -1868,6 +2307,10 @@ export default function Home() {
             padding: 18px;
           }
 
+          .stat-number {
+            font-size: 23px;
+          }
+
           .education-card {
             grid-template-columns: 1fr;
           }
@@ -1892,18 +2335,53 @@ export default function Home() {
             font-size: 10px;
           }
         }
+
+        /* =========================
+           VERY SMALL PHONES
+           ========================= */
+
+        @media (max-width: 390px) {
+          .hero-title {
+            font-size: 47px;
+          }
+
+          .music-player {
+            min-height: 82px;
+          }
+
+          .music-player-icon {
+            width: 46px;
+            height: 46px;
+
+            flex-basis: 46px;
+          }
+
+          .music-bars {
+            display: none;
+          }
+
+          .hero-visual {
+            transform: scale(0.7);
+
+            width: 142%;
+
+            margin-left: -21%;
+          }
+        }
       `}</style>
 
       <div className="noise" />
 
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
-        src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3?filename=lofi-study-112191.mp3"
-      />
+      {/* =========================
+          AUDIO
+          ========================= */}
 
-      {/* NAVBAR */}
+      <audio ref={audioRef} loop preload="auto" src="/music.mp3" />
+
+      {/* =========================
+          NAVBAR
+          ========================= */}
+
       <header className="topbar">
         <div className="topbar-inner">
           <a href="#home" className="brand">
@@ -1936,7 +2414,10 @@ export default function Home() {
       </header>
 
       <main id="home">
-        {/* HERO */}
+        {/* =========================
+            HERO
+            ========================= */}
+
         <section className="hero">
           <div>
             <div className="eyebrow">
@@ -1955,7 +2436,7 @@ export default function Home() {
               Fırat Üniversitesi <strong>Yazılım Mühendisliği</strong>{" "}
               mezunuyum. React Native, Firebase ve modern web teknolojileriyle
               gerçek ürünler geliştiriyorum. Mobil fikirleri çalışan,
-              yayınlanabilir deneyimlere dönüştürmeyi seviyorum.
+              yayınlanabilir deneyimlere dönüştürmeye calışıyorum.
             </p>
 
             <div className="hero-actions">
@@ -1977,7 +2458,50 @@ export default function Home() {
               <span />
               Yazılım ve mobil geliştirme fırsatlarına açığım
             </div>
+
+            {/* =========================
+                BÜYÜK MÜZİK ALANI
+                ========================= */}
+
+            <button
+              type="button"
+              className={`music-player ${isPlaying ? "playing" : ""}`}
+              onClick={toggleMuzik}
+              aria-label={
+                isPlaying ? "Müziği durdur" : "Favori müziğimi başlat"
+              }
+            >
+              <div className="music-player-icon">
+                {isPlaying ? <Volume2 size={25} /> : <VolumeX size={25} />}
+              </div>
+
+              <div className="music-player-content">
+                <span className="music-label">
+                  {isPlaying ? "ŞU AN ÇALIYOR" : "FAVORİ MÜZİĞİM"}
+                </span>
+
+                <strong>Benim favori müziğim</strong>
+
+                <small>
+                  {isPlaying
+                    ? "Müzik açık · Durdurmak için tıkla"
+                    : "Dinlemek için tıkla"}
+                </small>
+              </div>
+
+              <div className="music-bars" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            </button>
           </div>
+
+          {/* =========================
+              PROFILE / ORBIT
+              ========================= */}
 
           <div className="hero-visual">
             <OrbitalSystem />
@@ -1996,7 +2520,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* STATS */}
+        {/* =========================
+            STATS
+            ========================= */}
+
         <section className="stats">
           <div className="stats-grid">
             <div className="stat">
@@ -2021,7 +2548,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SKILLS */}
+        {/* =========================
+            SKILLS
+            ========================= */}
+
         <section id="skills" className="section">
           <div className="section-heading">
             <div>
@@ -2113,7 +2643,9 @@ export default function Home() {
                 </div>
 
                 <div className="ok">✓ mobile systems online</div>
+
                 <div className="ok">✓ production mindset enabled</div>
+
                 <div className="ok">✓ shipping mode active</div>
 
                 <br />
@@ -2127,7 +2659,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* EXPERIENCE */}
+        {/* =========================
+            EXPERIENCE
+            ========================= */}
+
         <section id="experience" className="section">
           <div className="section-heading">
             <div>
@@ -2199,7 +2734,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PROJECTS */}
+        {/* =========================
+            PROJECTS
+            ========================= */}
+
         <section id="projects" className="section">
           <div className="section-heading">
             <div>
@@ -2218,6 +2756,7 @@ export default function Home() {
 
           <div className="projects">
             {/* PROJECT 1 */}
+
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2254,6 +2793,7 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 2 */}
+
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2295,6 +2835,7 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 3 */}
+
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2336,6 +2877,7 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 4 */}
+
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2377,6 +2919,7 @@ export default function Home() {
             </TiltCard>
 
             {/* PROJECT 5 */}
+
             <TiltCard className="project glass">
               <div>
                 <div className="project-visual">
@@ -2419,7 +2962,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* EDUCATION */}
+        {/* =========================
+            EDUCATION
+            ========================= */}
+
         <section id="education" className="section">
           <div className="section-heading">
             <div>
@@ -2476,7 +3022,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PRIVATE GALLERY */}
+        {/* =========================
+            PRIVATE GALLERY
+            ========================= */}
+
         <section className="section" style={{ paddingTop: 30 }}>
           <div className="section-heading">
             <div>
@@ -2565,7 +3114,10 @@ export default function Home() {
         </section>
       </main>
 
-      {/* FOOTER */}
+      {/* =========================
+          FOOTER
+          ========================= */}
+
       <footer>
         <div
           style={{
@@ -2615,7 +3167,7 @@ export default function Home() {
             EMAIL
           </a>
         </div>
-        React · merak · biraz fazla kahve ile geliştirildi
+        React · Next.js ile geliştirildi.
         <div className="footer-name">© 2026 AYŞE TURAN</div>
       </footer>
     </div>
