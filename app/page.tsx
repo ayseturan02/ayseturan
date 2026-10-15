@@ -41,6 +41,8 @@ function TiltCard({ children, className = "" }: TiltCardProps) {
 
     const rect = el.getBoundingClientRect();
 
+    if (rect.width === 0 || rect.height === 0) return;
+
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
@@ -124,6 +126,51 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    audio.volume = 0.35;
+
+    const startMusic = () => {
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch(() => {});
+    };
+
+    startMusic();
+
+    const handleFirstInteraction = () => {
+      startMusic();
+
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+
+    window.addEventListener("pointerdown", handleFirstInteraction, {
+      once: true,
+    });
+
+    window.addEventListener("keydown", handleFirstInteraction, {
+      once: true,
+    });
+
+    window.addEventListener("touchstart", handleFirstInteraction, {
+      once: true,
+    });
+
+    return () => {
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+  }, []);
+
+  useEffect(() => {
     const onScroll = () => {
       document.documentElement.style.setProperty(
         "--scroll-y",
@@ -131,7 +178,9 @@ export default function Home() {
       );
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -139,19 +188,24 @@ export default function Home() {
   }, []);
 
   const toggleMuzik = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    if (!audio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
       setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch(() => {});
+      return;
     }
+
+    audio
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+      })
+      .catch(() => {
+        setIsPlaying(false);
+      });
   };
 
   const handlePasswordCheck = (e: React.FormEvent) => {
@@ -195,21 +249,43 @@ export default function Home() {
           --scroll-y: 0px;
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
           box-sizing: border-box;
         }
 
         html {
           scroll-behavior: smooth;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         body {
           margin: 0;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
           background: var(--bg);
+        }
+
+        img,
+        svg,
+        video,
+        canvas {
+          max-width: 100%;
+        }
+
+        button,
+        input {
+          font: inherit;
         }
 
         .portfolio-shell {
           min-height: 100vh;
+          width: 100%;
+          max-width: 100%;
           overflow-x: hidden;
           color: #e5e7eb;
 
@@ -270,10 +346,16 @@ export default function Home() {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
         }
 
+        /* =========================
+           NAVBAR
+           ========================= */
+
         .topbar {
           position: sticky;
           top: 0;
           z-index: 60;
+          width: 100%;
+          max-width: 100%;
 
           border-bottom: 1px solid var(--line);
 
@@ -282,6 +364,7 @@ export default function Home() {
         }
 
         .topbar-inner {
+          width: 100%;
           max-width: 1180px;
           margin: auto;
           padding: 14px 22px;
@@ -290,9 +373,14 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
           gap: 20px;
+
+          min-width: 0;
         }
 
         .brand {
+          min-width: 0;
+          max-width: 100%;
+
           display: flex;
           align-items: center;
           gap: 10px;
@@ -308,6 +396,7 @@ export default function Home() {
         .brand-dot {
           width: 9px;
           height: 9px;
+          min-width: 9px;
           border-radius: 50%;
 
           background: var(--cyan);
@@ -321,6 +410,7 @@ export default function Home() {
           display: flex;
           gap: 7px;
           align-items: center;
+          min-width: 0;
         }
 
         .navlinks a,
@@ -353,7 +443,12 @@ export default function Home() {
           background: rgba(34, 211, 238, 0.07);
         }
 
+        /* =========================
+           HERO
+           ========================= */
+
         .hero {
+          width: 100%;
           max-width: 1180px;
           min-height: 760px;
 
@@ -365,13 +460,19 @@ export default function Home() {
 
           display: grid;
 
-          grid-template-columns: 1.05fr 0.95fr;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
           align-items: center;
 
           gap: 35px;
 
           z-index: 2;
+
+          overflow: visible;
+        }
+
+        .hero > * {
+          min-width: 0;
         }
 
         .hero::after {
@@ -384,6 +485,8 @@ export default function Home() {
 
           right: 0;
           top: 90px;
+
+          max-width: 100vw;
 
           border-radius: 50%;
 
@@ -405,6 +508,8 @@ export default function Home() {
 
           gap: 8px;
 
+          max-width: 100%;
+
           padding: 8px 12px;
 
           border-radius: 999px;
@@ -420,11 +525,11 @@ export default function Home() {
             SFMono-Regular,
             Menlo,
             monospace;
-
-          box-shadow: 0 0 30px rgba(34, 211, 238, 0.07);
         }
 
         .hero-title {
+          max-width: 100%;
+
           font-size: clamp(52px, 7vw, 92px);
 
           line-height: 0.91;
@@ -436,10 +541,14 @@ export default function Home() {
           color: #fff;
 
           font-weight: 900;
+
+          overflow-wrap: anywhere;
+          word-break: normal;
         }
 
         .hero-title .gradient {
           display: block;
+          max-width: 100%;
 
           background: linear-gradient(
             100deg,
@@ -457,16 +566,23 @@ export default function Home() {
           background-size: 180% auto;
 
           animation: gradientMove 7s ease-in-out infinite;
+
+          overflow-wrap: anywhere;
         }
 
         .hero-copy {
+          width: 100%;
           max-width: 650px;
+          min-width: 0;
 
           color: #94a3b8;
 
           font-size: 15px;
 
           line-height: 1.8;
+
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .hero-copy strong {
@@ -474,6 +590,9 @@ export default function Home() {
         }
 
         .hero-actions {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
           gap: 12px;
@@ -485,9 +604,13 @@ export default function Home() {
 
         .primary-btn,
         .secondary-btn {
+          max-width: 100%;
+
           display: inline-flex;
 
           align-items: center;
+
+          justify-content: center;
 
           gap: 9px;
 
@@ -528,9 +651,12 @@ export default function Home() {
         }
 
         .availability {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
-          align-items: center;
+          align-items: flex-start;
 
           gap: 8px;
 
@@ -539,11 +665,18 @@ export default function Home() {
           color: #64748b;
 
           font-size: 11px;
+
+          line-height: 1.5;
+
+          overflow-wrap: anywhere;
         }
 
         .availability span {
           width: 7px;
           height: 7px;
+          min-width: 7px;
+
+          margin-top: 4px;
 
           border-radius: 50%;
 
@@ -552,7 +685,243 @@ export default function Home() {
           box-shadow: 0 0 13px #34d399;
         }
 
+        /* =========================
+           MUSIC PLAYER
+           ========================= */
+
+        .music-player {
+          width: min(100%, 560px);
+          max-width: 100%;
+          min-width: 0;
+          min-height: 94px;
+
+          margin-top: 28px;
+
+          padding: 16px 18px;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 15px;
+
+          text-align: left;
+
+          border-radius: 22px;
+
+          border: 1px solid rgba(103, 232, 249, 0.18);
+
+          background:
+            radial-gradient(
+              circle at 0% 50%,
+              rgba(34, 211, 238, 0.12),
+              transparent 35%
+            ),
+            linear-gradient(
+              135deg,
+              rgba(15, 23, 42, 0.9),
+              rgba(6, 10, 19, 0.78)
+            );
+
+          color: #fff;
+
+          cursor: pointer;
+
+          position: relative;
+
+          overflow: hidden;
+
+          box-shadow:
+            0 20px 60px rgba(0, 0, 0, 0.28),
+            inset 0 1px rgba(255, 255, 255, 0.04);
+
+          transition:
+            transform 0.3s ease,
+            border-color 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .music-player::before {
+          content: "";
+
+          position: absolute;
+
+          inset: 0;
+
+          background: linear-gradient(
+            110deg,
+            transparent 20%,
+            rgba(103, 232, 249, 0.08) 50%,
+            transparent 80%
+          );
+
+          transform: translateX(-100%);
+
+          transition: transform 0.7s ease;
+
+          pointer-events: none;
+        }
+
+        .music-player:hover {
+          transform: translateY(-4px);
+
+          border-color: rgba(103, 232, 249, 0.38);
+
+          box-shadow:
+            0 25px 75px rgba(0, 0, 0, 0.38),
+            0 0 40px rgba(34, 211, 238, 0.09),
+            inset 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .music-player:hover::before {
+          transform: translateX(100%);
+        }
+
+        .music-player.playing {
+          border-color: rgba(103, 232, 249, 0.42);
+
+          box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.38),
+            0 0 45px rgba(34, 211, 238, 0.14),
+            inset 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .music-player-icon {
+          width: 58px;
+          height: 58px;
+
+          flex: 0 0 58px;
+
+          display: grid;
+
+          place-items: center;
+
+          border-radius: 18px;
+
+          color: #031017;
+
+          background: linear-gradient(135deg, #67e8f9, #60a5fa, #a78bfa);
+
+          box-shadow:
+            0 0 25px rgba(34, 211, 238, 0.25),
+            inset 0 1px rgba(255, 255, 255, 0.5);
+
+          animation: musicPulse 3s ease-in-out infinite;
+        }
+
+        .music-player-content {
+          min-width: 0;
+          max-width: 100%;
+
+          display: flex;
+
+          flex-direction: column;
+
+          gap: 4px;
+
+          flex: 1;
+        }
+
+        .music-label {
+          color: #67e8f9;
+
+          font:
+            800 9px ui-monospace,
+            monospace;
+
+          letter-spacing: 0.16em;
+
+          text-transform: uppercase;
+        }
+
+        .music-player-content strong {
+          color: #fff;
+
+          font-size: 15px;
+
+          font-weight: 850;
+
+          white-space: normal;
+
+          overflow-wrap: anywhere;
+        }
+
+        .music-player-content small {
+          color: #64748b;
+
+          font-size: 10px;
+
+          line-height: 1.4;
+
+          overflow-wrap: anywhere;
+        }
+
+        .music-bars {
+          height: 35px;
+
+          display: flex;
+
+          align-items: center;
+
+          justify-content: center;
+
+          gap: 4px;
+
+          padding: 0 5px;
+
+          flex-shrink: 0;
+        }
+
+        .music-bars i {
+          display: block;
+
+          width: 4px;
+
+          height: 12px;
+
+          border-radius: 999px;
+
+          background: #67e8f9;
+
+          box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+
+          animation: musicBars 1s ease-in-out infinite;
+
+          animation-play-state: paused;
+        }
+
+        .music-player.playing .music-bars i {
+          animation-play-state: running;
+        }
+
+        .music-bars i:nth-child(1) {
+          animation-delay: 0s;
+        }
+
+        .music-bars i:nth-child(2) {
+          animation-delay: 0.15s;
+        }
+
+        .music-bars i:nth-child(3) {
+          animation-delay: 0.3s;
+        }
+
+        .music-bars i:nth-child(4) {
+          animation-delay: 0.45s;
+        }
+
+        .music-bars i:nth-child(5) {
+          animation-delay: 0.6s;
+        }
+
+        /* =========================
+           HERO VISUAL
+           ========================= */
+
         .hero-visual {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           min-height: 550px;
 
           display: flex;
@@ -561,51 +930,88 @@ export default function Home() {
 
           justify-content: center;
 
-          perspective: 1200px;
+          justify-self: center;
 
           position: relative;
+
+          perspective: 1200px;
+
+          overflow: visible;
         }
+
+        /* =========================
+           PROFILE
+           ========================= */
 
         .portrait-frame {
           position: absolute;
 
-          width: 255px;
-          height: 320px;
+          width: 280px;
+          height: 280px;
 
-          right: 50%;
+          left: 50%;
+          top: 50%;
 
-          transform: translateX(50%) rotateY(-8deg) rotateX(4deg);
+          margin: 0;
 
-          border-radius: 50% / 46%;
+          transform: translate(-50%, -50%);
 
-          padding: 2px;
+          border-radius: 50%;
 
-          background: linear-gradient(
-            135deg,
-            rgba(103, 232, 249, 0.9),
-            rgba(129, 140, 248, 0.25),
-            rgba(244, 114, 182, 0.8)
+          padding: 3px;
+
+          background: conic-gradient(
+            from 0deg,
+            #22d3ee,
+            #60a5fa,
+            #a78bfa,
+            #f472b6,
+            #22d3ee
           );
 
           box-shadow:
-            0 35px 100px rgba(0, 0, 0, 0.65),
-            0 0 70px rgba(34, 211, 238, 0.12);
+            0 0 25px rgba(34, 211, 238, 0.45),
+            0 0 60px rgba(34, 211, 238, 0.25),
+            0 0 110px rgba(167, 139, 250, 0.18),
+            0 30px 90px rgba(0, 0, 0, 0.65);
 
-          animation: float 6s ease-in-out infinite;
+          animation:
+            portraitGlow 4s ease-in-out infinite,
+            portraitFloat 6s ease-in-out infinite;
 
-          z-index: 4;
+          z-index: 10;
         }
 
         .portrait-inner {
+          width: 100%;
           height: 100%;
 
-          border-radius: 50% / 46%;
+          border-radius: 50%;
 
           overflow: hidden;
 
           background: #070b14;
 
           position: relative;
+
+          border: 2px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .portrait-inner img {
+          width: 100%;
+          height: 100%;
+
+          display: block;
+
+          object-fit: cover;
+
+          object-position: center;
+
+          border-radius: 50%;
+
+          filter: saturate(1.08) contrast(1.04);
+
+          transition: transform 0.5s ease;
         }
 
         .portrait-inner::after {
@@ -615,42 +1021,58 @@ export default function Home() {
 
           inset: 0;
 
-          background: linear-gradient(
-            to bottom,
-            transparent 55%,
-            rgba(3, 5, 11, 0.75)
-          );
-        }
+          border-radius: 50%;
 
-        .portrait-inner img {
-          width: 100%;
-          height: 100%;
+          pointer-events: none;
 
-          object-fit: cover;
+          background:
+            radial-gradient(
+              circle at 30% 20%,
+              rgba(255, 255, 255, 0.18),
+              transparent 28%
+            ),
+            linear-gradient(
+              135deg,
+              rgba(34, 211, 238, 0.08),
+              transparent 45%,
+              rgba(167, 139, 250, 0.12)
+            );
 
-          object-position: center;
+          mix-blend-mode: screen;
         }
 
         .portrait-label {
           position: absolute;
 
-          bottom: 17px;
+          bottom: 18px;
 
-          left: 17px;
-          right: 17px;
+          left: 22px;
+          right: 22px;
 
           z-index: 5;
 
           font:
-            700 10px/1.5 ui-monospace,
+            700 9px/1.5 ui-monospace,
             monospace;
 
           color: #a5f3fc;
+
+          text-align: center;
+
+          text-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+
+          overflow-wrap: anywhere;
         }
+
+        /* =========================
+           ORBITAL SYSTEM
+           ========================= */
 
         .orbital-system {
           width: 530px;
           height: 530px;
+
+          max-width: 100%;
 
           position: relative;
 
@@ -837,7 +1259,12 @@ export default function Home() {
           box-shadow: 0 0 25px rgba(52, 211, 153, 0.35);
         }
 
+        /* =========================
+           STATS
+           ========================= */
+
         .stats {
+          width: 100%;
           max-width: 1180px;
 
           margin: -35px auto 100px;
@@ -850,9 +1277,12 @@ export default function Home() {
         }
 
         .stats-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
 
           border: 1px solid var(--line);
 
@@ -868,6 +1298,8 @@ export default function Home() {
         }
 
         .stat {
+          min-width: 0;
+
           padding: 25px;
 
           border-right: 1px solid var(--line);
@@ -901,9 +1333,16 @@ export default function Home() {
           text-transform: uppercase;
 
           letter-spacing: 0.1em;
+
+          overflow-wrap: anywhere;
         }
 
+        /* =========================
+           SECTIONS
+           ========================= */
+
         .section {
+          width: 100%;
           max-width: 1180px;
 
           margin: 0 auto;
@@ -913,18 +1352,30 @@ export default function Home() {
           position: relative;
 
           z-index: 3;
+
+          min-width: 0;
         }
 
         .section-heading {
+          width: 100%;
+          max-width: 100%;
+
           display: flex;
 
-          align-items: end;
+          align-items: flex-end;
 
           justify-content: space-between;
 
           gap: 20px;
 
           margin-bottom: 34px;
+
+          min-width: 0;
+        }
+
+        .section-heading > * {
+          min-width: 0;
+          max-width: 100%;
         }
 
         .section-kicker {
@@ -939,6 +1390,8 @@ export default function Home() {
           text-transform: uppercase;
 
           margin-bottom: 9px;
+
+          overflow-wrap: anywhere;
         }
 
         .section-title {
@@ -951,9 +1404,15 @@ export default function Home() {
           letter-spacing: -0.05em;
 
           margin: 0;
+
+          max-width: 100%;
+
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
 
         .section-desc {
+          width: 100%;
           max-width: 430px;
 
           color: #64748b;
@@ -961,6 +1420,8 @@ export default function Home() {
           font-size: 12px;
 
           line-height: 1.7;
+
+          overflow-wrap: anywhere;
         }
 
         .glass {
@@ -979,11 +1440,18 @@ export default function Home() {
             0 25px 80px rgba(0, 0, 0, 0.2);
         }
 
+        /* =========================
+           TILT CARDS
+           ========================= */
+
         .tilt-card {
           --rx: 0deg;
           --ry: 0deg;
           --mx: 50%;
           --my: 50%;
+
+          min-width: 0;
+          max-width: 100%;
 
           transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
 
@@ -1014,10 +1482,18 @@ export default function Home() {
           opacity: 0.8;
         }
 
+        /* =========================
+           SKILLS
+           ========================= */
+
         .skills-layout {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           display: grid;
 
-          grid-template-columns: 0.7fr 1.3fr;
+          grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
 
           gap: 18px;
         }
@@ -1038,9 +1514,13 @@ export default function Home() {
           gap: 9px;
 
           margin-top: 25px;
+
+          min-width: 0;
         }
 
         .skill {
+          max-width: 100%;
+
           padding: 9px 12px;
 
           border-radius: 11px;
@@ -1052,6 +1532,8 @@ export default function Home() {
           border: 1px solid;
 
           transition: 0.25s;
+
+          overflow-wrap: anywhere;
         }
 
         .skill:hover {
@@ -1060,101 +1542,85 @@ export default function Home() {
 
         .skill-yellow {
           color: #fde047;
-
           background: #eab3080d;
-
           border-color: #eab30830;
         }
 
         .skill-blue {
           color: #60a5fa;
-
           background: #3b82f60d;
-
           border-color: #3b82f630;
         }
 
         .skill-slate {
           color: #cbd5e1;
-
           background: #64748b0d;
-
           border-color: #64748b30;
         }
 
         .skill-indigo {
           color: #818cf8;
-
           background: #6366f10d;
-
           border-color: #6366f130;
         }
 
         .skill-cyan {
           color: #67e8f9;
-
           background: #06b6d40d;
-
           border-color: #06b6d430;
         }
 
         .skill-sky {
           color: #7dd3fc;
-
           background: #0ea5e90d;
-
           border-color: #0ea5e930;
         }
 
         .skill-white {
           color: #fff;
-
           background: #ffffff0d;
-
           border-color: #ffffff22;
         }
 
         .skill-amber {
           color: #fbbf24;
-
           background: #f59e0b0d;
-
           border-color: #f59e0b30;
         }
 
         .skill-orange {
           color: #fb923c;
-
           background: #f973160d;
-
           border-color: #f9731630;
         }
 
         .skill-emerald {
           color: #34d399;
-
           background: #10b9810d;
-
           border-color: #10b98130;
         }
 
         .skill-teal {
           color: #2dd4bf;
-
           background: #14b8a60d;
-
           border-color: #14b8a630;
         }
 
         .skill-rose {
           color: #fb7185;
-
           background: #f43f5e0d;
-
           border-color: #f43f5e30;
         }
 
+        /* =========================
+           TERMINAL
+           ========================= */
+
         .terminal {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           overflow: hidden;
@@ -1169,6 +1635,8 @@ export default function Home() {
         }
 
         .terminal-top {
+          min-width: 0;
+
           padding: 12px 15px;
 
           border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -1183,10 +1651,18 @@ export default function Home() {
         .terminal-top i {
           width: 8px;
           height: 8px;
+          min-width: 8px;
 
           border-radius: 50%;
 
           background: #334155;
+        }
+
+        .terminal-top span {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .terminal-body {
@@ -1197,6 +1673,11 @@ export default function Home() {
             monospace;
 
           color: #64748b;
+
+          overflow-x: auto;
+
+          white-space: normal;
+          overflow-wrap: anywhere;
         }
 
         .terminal-body .cmd {
@@ -1211,15 +1692,25 @@ export default function Home() {
           color: #c4b5fd;
         }
 
+        /* =========================
+           EXPERIENCE
+           ========================= */
+
         .experience-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
 
           gap: 16px;
         }
 
         .experience {
+          width: 100%;
+          min-width: 0;
+
           padding: 25px;
 
           border-radius: 24px;
@@ -1243,6 +1734,8 @@ export default function Home() {
           font-size: 16px;
 
           letter-spacing: -0.02em;
+
+          overflow-wrap: anywhere;
         }
 
         .experience p {
@@ -1253,17 +1746,30 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.75;
+
+          overflow-wrap: anywhere;
         }
 
+        /* =========================
+           PROJECTS
+           ========================= */
+
         .projects {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           display: grid;
 
-          grid-template-columns: repeat(12, 1fr);
+          grid-template-columns: repeat(12, minmax(0, 1fr));
 
           gap: 16px;
         }
 
         .project {
+          width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           overflow: hidden;
@@ -1296,6 +1802,9 @@ export default function Home() {
         }
 
         .project-visual {
+          width: 100%;
+          max-width: 100%;
+
           height: 125px;
 
           border-radius: 19px;
@@ -1389,6 +1898,7 @@ export default function Home() {
           display: inline-flex;
 
           width: fit-content;
+          max-width: 100%;
 
           padding: 6px 8px;
 
@@ -1407,6 +1917,8 @@ export default function Home() {
           text-transform: uppercase;
 
           letter-spacing: 0.07em;
+
+          overflow-wrap: anywhere;
         }
 
         .project h3 {
@@ -1415,6 +1927,8 @@ export default function Home() {
           margin: 12px 0 7px;
 
           font-size: 17px;
+
+          overflow-wrap: anywhere;
         }
 
         .project p {
@@ -1425,9 +1939,14 @@ export default function Home() {
           line-height: 1.7;
 
           margin: 0;
+
+          overflow-wrap: anywhere;
         }
 
         .project-footer {
+          width: 100%;
+          min-width: 0;
+
           display: flex;
 
           justify-content: space-between;
@@ -1441,6 +1960,11 @@ export default function Home() {
           padding-top: 15px;
 
           border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .project-footer > * {
+          min-width: 0;
+          max-width: 100%;
         }
 
         .project-link {
@@ -1457,16 +1981,26 @@ export default function Home() {
           align-items: center;
 
           gap: 6px;
+
+          flex-shrink: 0;
         }
 
+        /* =========================
+           EDUCATION
+           ========================= */
+
         .education-card {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 26px;
 
           padding: 30px;
 
           display: grid;
 
-          grid-template-columns: 130px 1fr;
+          grid-template-columns: 130px minmax(0, 1fr);
 
           gap: 25px;
 
@@ -1487,6 +2021,8 @@ export default function Home() {
           color: #fff;
 
           font-size: 18px;
+
+          overflow-wrap: anywhere;
         }
 
         .education-card p {
@@ -1497,9 +2033,19 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.7;
+
+          overflow-wrap: anywhere;
         }
 
+        /* =========================
+           PRIVATE GALLERY
+           ========================= */
+
         .gallery {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+
           border-radius: 28px;
 
           padding: 28px;
@@ -1536,6 +2082,8 @@ export default function Home() {
           color: #fff;
 
           margin: 0 0 8px;
+
+          overflow-wrap: anywhere;
         }
 
         .gallery p {
@@ -1544,9 +2092,12 @@ export default function Home() {
           font-size: 11px;
 
           line-height: 1.6;
+
+          overflow-wrap: anywhere;
         }
 
         .gallery-form {
+          width: 100%;
           max-width: 420px;
 
           margin: 20px auto 0;
@@ -1560,6 +2111,7 @@ export default function Home() {
           flex: 1;
 
           min-width: 0;
+          max-width: 100%;
 
           border: 1px solid rgba(148, 163, 184, 0.15);
 
@@ -1596,6 +2148,8 @@ export default function Home() {
           font-weight: 900;
 
           cursor: pointer;
+
+          flex-shrink: 0;
         }
 
         .gallery-form button:hover {
@@ -1605,9 +2159,12 @@ export default function Home() {
         }
 
         .photo-grid {
+          width: 100%;
+          max-width: 100%;
+
           display: grid;
 
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(3, minmax(0, 1fr));
 
           gap: 12px;
 
@@ -1615,6 +2172,9 @@ export default function Home() {
         }
 
         .photo {
+          width: 100%;
+          min-width: 0;
+
           height: 190px;
 
           border-radius: 18px;
@@ -1637,7 +2197,14 @@ export default function Home() {
           transform: scale(1.06);
         }
 
+        /* =========================
+           FOOTER
+           ========================= */
+
         footer {
+          width: 100%;
+          max-width: 100%;
+
           border-top: 1px solid var(--line);
 
           padding: 55px 22px;
@@ -1653,6 +2220,8 @@ export default function Home() {
           position: relative;
 
           z-index: 3;
+
+          overflow-wrap: anywhere;
         }
 
         .footer-name {
@@ -1665,24 +2234,44 @@ export default function Home() {
           margin-top: 10px;
         }
 
+        /* =========================
+           ANIMATIONS
+           ========================= */
+
         @keyframes pulse {
           50% {
             opacity: 0.45;
-
             transform: scale(0.75);
           }
         }
 
-        @keyframes float {
+        @keyframes portraitFloat {
           0%,
           100% {
-            transform: translateX(50%) rotateY(-8deg) rotateX(4deg)
-              translateY(0);
+            transform: translate(-50%, -50%) translateY(0);
           }
 
           50% {
-            transform: translateX(50%) rotateY(-3deg) rotateX(7deg)
-              translateY(-15px);
+            transform: translate(-50%, -50%) translateY(-12px);
+          }
+        }
+
+        @keyframes portraitGlow {
+          0%,
+          100% {
+            box-shadow:
+              0 0 25px rgba(34, 211, 238, 0.4),
+              0 0 60px rgba(34, 211, 238, 0.22),
+              0 0 110px rgba(167, 139, 250, 0.15),
+              0 30px 90px rgba(0, 0, 0, 0.65);
+          }
+
+          50% {
+            box-shadow:
+              0 0 35px rgba(34, 211, 238, 0.65),
+              0 0 80px rgba(96, 165, 250, 0.35),
+              0 0 140px rgba(244, 114, 182, 0.2),
+              0 35px 100px rgba(0, 0, 0, 0.7);
           }
         }
 
@@ -1716,29 +2305,71 @@ export default function Home() {
           }
         }
 
+        @keyframes musicBars {
+          0%,
+          100% {
+            height: 8px;
+          }
+
+          50% {
+            height: 31px;
+          }
+        }
+
+        @keyframes musicPulse {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        /* =========================
+           TABLET
+           ========================= */
+
         @media (max-width: 900px) {
           .hero {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
 
             padding-top: 55px;
 
             min-height: auto;
+
+            gap: 20px;
+          }
+
+          .hero > div:first-child {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
           }
 
           .hero-visual {
+            width: 100%;
+            max-width: 100%;
             min-height: 480px;
+
+            transform-origin: center center;
+          }
+
+          .music-player {
+            max-width: 600px;
           }
 
           .skills-layout {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .experience-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .stat:nth-child(2) {
@@ -1754,104 +2385,541 @@ export default function Home() {
           }
         }
 
+        /* =========================
+           MOBILE
+           ========================= */
+
         @media (max-width: 620px) {
+          .topbar-inner {
+            width: 100%;
+            padding: 12px 16px;
+          }
+
+          .brand {
+            font-size: 10px;
+            letter-spacing: 0.045em;
+            gap: 7px;
+          }
+
+          .brand-dot {
+            width: 7px;
+            height: 7px;
+            min-width: 7px;
+          }
+
+          .navlinks {
+            flex-shrink: 0;
+          }
+
           .navlinks a {
             display: none;
           }
 
-          .hero {
-            padding-left: 16px;
+          .music-button {
+            padding: 8px 10px;
+            white-space: nowrap;
+          }
 
-            padding-right: 16px;
+          .hero {
+            width: 100%;
+            max-width: 100%;
+
+            padding: 48px 16px 55px;
+
+            grid-template-columns: minmax(0, 1fr);
+
+            gap: 10px;
+
+            overflow: visible;
           }
 
           .hero-title {
-            font-size: 53px;
+            width: 100%;
+            max-width: 100%;
+
+            font-size: clamp(40px, 12.8vw, 53px);
+
+            line-height: 0.95;
+
+            letter-spacing: -0.055em;
+
+            margin-top: 20px;
+          }
+
+          .hero-copy {
+            width: 100%;
+            max-width: 100%;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+          }
+
+          .hero-actions {
+            width: 100%;
+            max-width: 100%;
+
+            margin-top: 24px;
+
+            flex-direction: column;
+
+            align-items: stretch;
+          }
+
+          .primary-btn,
+          .secondary-btn {
+            width: 100%;
+            max-width: 100%;
+          }
+
+          .availability {
+            font-size: 10px;
+          }
+
+          .music-player {
+            width: 100%;
+            max-width: 100%;
+
+            min-height: 82px;
+
+            padding: 12px;
+
+            gap: 10px;
+
+            border-radius: 19px;
+          }
+
+          .music-player-icon {
+            width: 50px;
+            height: 50px;
+
+            flex: 0 0 50px;
+
+            border-radius: 15px;
+          }
+
+          .music-player-content {
+            min-width: 0;
+          }
+
+          .music-player-content strong {
+            font-size: 13px;
+            line-height: 1.25;
+          }
+
+          .music-player-content small {
+            font-size: 9px;
+          }
+
+          .music-bars {
+            display: none;
           }
 
           .hero-visual {
-            min-height: 400px;
+            width: 100%;
+            max-width: 100%;
 
-            transform: scale(0.78);
+            min-height: 390px;
 
-            margin: -45px 0;
+            margin: -10px 0 -35px;
+
+            transform: scale(0.72);
+
+            transform-origin: center center;
+
+            overflow: visible;
+          }
+
+          .orbital-system {
+            width: 530px;
+            height: 530px;
+            max-width: none;
+          }
+
+          .portrait-frame {
+            width: 260px;
+            height: 260px;
+
+            left: 50%;
+            top: 50%;
+          }
+
+          .portrait-label {
+            left: 16px;
+            right: 16px;
+            bottom: 15px;
+            font-size: 8px;
           }
 
           .stats {
+            width: 100%;
+            max-width: 100%;
+
             padding: 0 16px;
+
+            margin: -15px auto 60px;
+          }
+
+          .stats-grid {
+            width: 100%;
+
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            border-radius: 20px;
+          }
+
+          .stat {
+            min-width: 0;
+            padding: 17px 13px;
+          }
+
+          .stat-number {
+            font-size: 22px;
+          }
+
+          .stat-label {
+            font-size: 8px;
+            letter-spacing: 0.06em;
           }
 
           .section {
+            width: 100%;
+            max-width: 100%;
+
             padding: 65px 16px;
           }
 
           .section-heading {
             display: block;
+
+            margin-bottom: 25px;
+          }
+
+          .section-title {
+            font-size: clamp(28px, 9vw, 38px);
+
+            line-height: 1.02;
           }
 
           .section-desc {
+            max-width: 100%;
+
             margin-top: 14px;
+
+            font-size: 11px;
           }
 
-          .stats-grid {
-            grid-template-columns: 1fr 1fr;
+          .skills-layout {
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
           }
 
-          .stat {
-            padding: 18px;
+          .skills-main {
+            padding: 20px;
+
+            min-height: auto;
+
+            border-radius: 22px;
+          }
+
+          .skills-grid {
+            gap: 7px;
+          }
+
+          .skill {
+            padding: 8px 10px;
+            font-size: 9px;
+          }
+
+          .terminal {
+            min-height: 0;
+            border-radius: 22px;
+          }
+
+          .terminal-body {
+            padding: 20px;
+
+            font-size: 10px;
+
+            line-height: 1.9;
+          }
+
+          .experience-grid {
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .experience {
+            min-height: 0;
+
+            padding: 21px;
+
+            border-radius: 22px;
+          }
+
+          .experience h3 {
+            font-size: 15px;
+          }
+
+          .projects {
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .projects .project {
+            grid-column: auto !important;
+
+            width: 100%;
+            max-width: 100%;
+
+            min-height: 0;
+
+            padding: 20px;
+
+            border-radius: 22px;
+          }
+
+          .project-visual {
+            height: 115px;
+
+            margin-bottom: 18px;
+          }
+
+          .project h3 {
+            font-size: 16px;
+          }
+
+          .project-footer {
+            align-items: flex-start;
           }
 
           .education-card {
-            grid-template-columns: 1fr;
+            width: 100%;
+            max-width: 100%;
+
+            grid-template-columns: minmax(0, 1fr);
+
+            gap: 16px;
+
+            padding: 22px;
+
+            border-radius: 22px;
+          }
+
+          .education-card h3 {
+            font-size: 16px;
+          }
+
+          .gallery {
+            padding: 20px;
+
+            border-radius: 22px;
+          }
+
+          .gallery-form {
+            width: 100%;
+            max-width: 100%;
+
+            flex-direction: column;
+          }
+
+          .gallery-form input {
+            width: 100%;
+            height: 42px;
+          }
+
+          .gallery-form button {
+            width: 100%;
+            height: 42px;
           }
 
           .photo-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .photo {
             height: 240px;
           }
 
-          .gallery-form {
-            flex-direction: column;
+          footer {
+            padding: 45px 16px;
           }
 
-          .gallery-form button {
-            height: 42px;
+          footer > div:first-child {
+            flex-wrap: wrap;
+          }
+        }
+
+        /* =========================
+           VERY SMALL PHONES
+           ========================= */
+
+        @media (max-width: 390px) {
+          .topbar-inner {
+            padding-left: 12px;
+            padding-right: 12px;
           }
 
           .brand {
+            font-size: 9px;
+            gap: 6px;
+          }
+
+          .music-button {
+            padding: 7px 8px;
             font-size: 10px;
+          }
+
+          .hero {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .hero-title {
+            font-size: clamp(36px, 12.5vw, 47px);
+          }
+
+          .hero-copy {
+            font-size: 13px;
+          }
+
+          .music-player {
+            min-height: 80px;
+
+            padding: 10px;
+
+            gap: 9px;
+          }
+
+          .music-player-icon {
+            width: 45px;
+            height: 45px;
+
+            flex: 0 0 45px;
+
+            border-radius: 13px;
+          }
+
+          .music-player-content strong {
+            font-size: 12px;
+          }
+
+          .music-player-content small {
+            font-size: 8px;
+          }
+
+          .hero-visual {
+            min-height: 350px;
+
+            transform: scale(0.62);
+
+            margin: -30px 0 -65px;
+          }
+
+          .portrait-frame {
+            width: 250px;
+            height: 250px;
+          }
+
+          .stats {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .stat {
+            padding: 15px 11px;
+          }
+
+          .stat-number {
+            font-size: 20px;
+          }
+
+          .section {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .skills-main,
+          .terminal-body,
+          .experience,
+          .project,
+          .education-card,
+          .gallery {
+            padding-left: 17px;
+            padding-right: 17px;
+          }
+        }
+
+        /* =========================
+           EXTRA SMALL PHONES
+           ========================= */
+
+        @media (max-width: 340px) {
+          .brand {
+            font-size: 8px;
+          }
+
+          .music-button {
+            font-size: 9px;
+            padding: 6px 7px;
+          }
+
+          .hero-title {
+            font-size: 35px;
+          }
+
+          .hero-copy {
+            font-size: 12px;
+          }
+
+          .music-player-content strong {
+            font-size: 11px;
+          }
+
+          .music-player-content small {
+            font-size: 8px;
+          }
+
+          .hero-visual {
+            transform: scale(0.55);
+            margin-top: -45px;
+            margin-bottom: -90px;
+          }
+
+          .stat-number {
+            font-size: 18px;
+          }
+
+          .stat-label {
+            font-size: 7px;
           }
         }
       `}</style>
 
       <div className="noise" />
 
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
-        src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3?filename=lofi-study-112191.mp3"
-      />
+      {/* AUDIO */}
+      <audio ref={audioRef} loop preload="auto" src="/music.mp3" />
 
       {/* NAVBAR */}
       <header className="topbar">
         <div className="topbar-inner">
           <a href="#home" className="brand">
             <span className="brand-dot" />
-            AYŞE TURAN <span style={{ color: "#475569" }}>//</span> SOFTWARE
-            ENGINEER
+
+            <span>
+              AYŞE TURAN <span style={{ color: "#475569" }}>//</span> SOFTWARE
+              ENGINEER
+            </span>
           </a>
 
           <nav className="navlinks">
             <a href="#skills">Skills</a>
-
             <a href="#experience">Experience</a>
-
             <a href="#projects">Proje</a>
-
             <a href="#education">Education</a>
 
             <button
@@ -1888,7 +2956,7 @@ export default function Home() {
               Fırat Üniversitesi <strong>Yazılım Mühendisliği</strong>{" "}
               mezunuyum. React Native, Firebase ve modern web teknolojileriyle
               gerçek ürünler geliştiriyorum. Mobil fikirleri çalışan,
-              yayınlanabilir deneyimlere dönüştürmeyi seviyorum.
+              yayınlanabilir deneyimlere dönüştürmeye çalışıyorum.
             </p>
 
             <div className="hero-actions">
@@ -1908,22 +2976,65 @@ export default function Home() {
 
             <div className="availability">
               <span />
-              Yazılım ve mobil geliştirme fırsatlarına açığım
+              <span
+                style={{
+                  width: "auto",
+                  height: "auto",
+                  minWidth: 0,
+                  background: "transparent",
+                  boxShadow: "none",
+                  borderRadius: 0,
+                  margin: 0,
+                }}
+              >
+                Yazılım ve mobil geliştirme fırsatlarına açığım
+              </span>
             </div>
+
+            {/* MUSIC */}
+            <button
+              type="button"
+              className={`music-player ${isPlaying ? "playing" : ""}`}
+              onClick={toggleMuzik}
+              aria-label={
+                isPlaying ? "Müziği durdur" : "Favori müziğimi başlat"
+              }
+            >
+              <div className="music-player-icon">
+                {isPlaying ? <Volume2 size={25} /> : <VolumeX size={25} />}
+              </div>
+
+              <div className="music-player-content">
+                <span className="music-label">
+                  {isPlaying ? "ŞU AN ÇALIYOR" : "FAVORİ MÜZİĞİM"}
+                </span>
+
+                <strong>Benim favori müziğim</strong>
+
+                <small>
+                  {isPlaying
+                    ? "Müzik açık · Durdurmak için tıkla"
+                    : "Dinlemek için tıkla"}
+                </small>
+              </div>
+
+              <div className="music-bars" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+            </button>
           </div>
 
+          {/* PROFILE / ORBIT */}
           <div className="hero-visual">
             <OrbitalSystem />
 
             <div className="portrait-frame">
               <div className="portrait-inner">
-                <img src="/photo1.jpeg" alt="Ayşe Turan" />
-
-                <div className="portrait-label">
-                  <div style={{ color: "#64748b" }}>KİMLİK // 001</div>
-
-                  <div>AYŞE TURAN · MOBİL YAZILIM GELİŞTİRİCİ</div>
-                </div>
+                <img src="/photo11.jpeg" />
               </div>
             </div>
           </div>
@@ -1934,25 +3045,21 @@ export default function Home() {
           <div className="stats-grid">
             <div className="stat">
               <div className="stat-number">2025</div>
-
               <div className="stat-label">Mezuniyet</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">12+</div>
-
               <div className="stat-label">Teknoloji</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">5+</div>
-
               <div className="stat-label">Proje</div>
             </div>
 
             <div className="stat">
               <div className="stat-number">01</div>
-
               <div className="stat-label">Yayındaki Ürün</div>
             </div>
           </div>
@@ -1981,9 +3088,11 @@ export default function Home() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  gap: 15,
+                  minWidth: 0,
                 }}
               >
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="section-kicker" style={{ margin: 0 }}>
                     ANA TEKNOLOJİLER
                   </div>
@@ -1993,6 +3102,7 @@ export default function Home() {
                       color: "#fff",
                       margin: "8px 0 0",
                       fontSize: 20,
+                      overflowWrap: "anywhere",
                     }}
                   >
                     Geliştirme araçlarım
@@ -2510,6 +3620,8 @@ export default function Home() {
           style={{
             display: "flex",
             justifyContent: "center",
+            alignItems: "center",
+            flexWrap: "wrap",
             gap: 10,
             marginBottom: 15,
           }}
@@ -2554,7 +3666,7 @@ export default function Home() {
             EMAIL
           </a>
         </div>
-        React · merak · biraz fazla kahve ile geliştirildi
+        React · Next.js ile geliştirildi.
         <div className="footer-name">© 2026 AYŞE TURAN</div>
       </footer>
     </div>
