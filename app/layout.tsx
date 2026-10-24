@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import StyledJsxRegistry from "./registry";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -25,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="tr" className={`${jakarta.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-[#fcfbf9] text-[#1e232a] font-sans antialiased selection:bg-emerald-200 selection:text-emerald-900">
-        {children}
+        <StyledJsxRegistry>{children}</StyledJsxRegistry>
       </body>
     </html>
   );
