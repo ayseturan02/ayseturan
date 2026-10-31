@@ -13,7 +13,6 @@ import {
   ArrowRight,
   Lock,
   Unlock,
-  Sparkles,
   Code2,
   Mail,
   ExternalLink,
@@ -224,6 +223,9 @@ export default function Home() {
     ["Python", "skill-blue"],
     ["C", "skill-slate"],
     ["C++", "skill-indigo"],
+    ["C#", "skill-indigo"],
+    [".NET", "skill-blue"],
+    ["ASP.NET Core", "skill-indigo"],
     ["React Native", "skill-cyan"],
     ["React.js", "skill-sky"],
     ["Next.js", "skill-white"],
@@ -2940,11 +2942,6 @@ export default function Home() {
         {/* HERO */}
         <section className="hero">
           <div>
-            <div className="eyebrow">
-              <Sparkles size={13} />
-              YENİ FIRSATLARA AÇIĞIM
-            </div>
-
             <h1 className="hero-title">
               Ben
               <span className="gradient">
@@ -2972,23 +2969,6 @@ export default function Home() {
                 <Mail size={15} />
                 İletişime geç
               </a>
-            </div>
-
-            <div className="availability">
-              <span />
-              <span
-                style={{
-                  width: "auto",
-                  height: "auto",
-                  minWidth: 0,
-                  background: "transparent",
-                  boxShadow: "none",
-                  borderRadius: 0,
-                  margin: 0,
-                }}
-              >
-                Yazılım ve mobil geliştirme fırsatlarına açığım
-              </span>
             </div>
 
             {/* MUSIC */}
@@ -3151,7 +3131,10 @@ export default function Home() {
                   <span className="cmd">$</span> stack --primary
                 </div>
 
-                <div>React Native · React · Firebase · REST · Git</div>
+                <div>
+                  React Native · React · .NET · C# · Firebase · REST · Git &amp;
+                  GitHub
+                </div>
 
                 <br />
 
@@ -3183,7 +3166,7 @@ export default function Home() {
               <div className="section-kicker">02 / DENEYİM</div>
 
               <h2 className="section-title">
-                Gerçek ürün geliştirmeyi öğrendiğim yerler.
+                Gerçek ürün geliştirdiğim yerler.
               </h2>
             </div>
           </div>
@@ -3193,14 +3176,31 @@ export default function Home() {
               <Briefcase size={22} color="#67e8f9" />
 
               <div className="date" style={{ marginTop: 20 }}>
-                HAZ 2025 — ARA 2025
+                Ekim 2026 - Devam ediyor - Tam Zamanlı
               </div>
 
-              <h3>React Native Geliştirici · Nevera Tech</h3>
+              <h3>Yazılım Mühendisliği · GRIMELANGE </h3>
 
               <p>
-                Çapraz platform mobil uygulamalar, Firebase entegrasyonları,
-                REST API&apos;ler ve performans optimizasyonu.
+                E-ticaret entegrasyonları, ürün yönetimi, API akışları, sipariş
+                ve ödeme süreçleriyle çalışarak gerçek iş ihtiyaçlarına uygun
+                çözümler geliştiriyorum.
+              </p>
+            </TiltCard>
+
+            <TiltCard className="experience glass">
+              <Smartphone size={22} color="#60a5fa" />
+
+              <div className="date" style={{ marginTop: 20, color: "#60a5fa" }}>
+                Nisan 2025 - Ocak 2026 · Tam zamanlı
+              </div>
+
+              <h3>Mobil Uygulama Geliştirme · Neveratech</h3>
+
+              <p>
+                React Native ile mobil uygulama geliştirme, kullanıcı arayüzleri
+                ve API entegrasyonları üzerine çalıştım. Git ve GitHub ile sürüm
+                kontrolü ve ekip içi geliştirme süreçlerine katkı sağladım.
               </p>
             </TiltCard>
 
